@@ -103,10 +103,7 @@ mod tests {
     #[test]
     fn walk_test() {
         let res = fs::remove_file("test/demo/test.rs");
-        match res {
-            Ok(_) => (),
-            Err(_) => (),
-        };
+        if res.is_ok() {}
         walk_preprocess(CCompiler::GCC, "test/demo")
     }
 }

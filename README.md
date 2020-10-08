@@ -9,3 +9,6 @@ fn main() {
     walk_dir(CCompiler::GCC, "src")
 }
 ```
+
+This will pre-process any `.cpprs` source files in `src/` using
+[GCC](https://gcc.gnu.org/).
