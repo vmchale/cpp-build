@@ -5,9 +5,8 @@ use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
 use walkdir::WalkDir;
 
-// should work with pgcc, icc, clang, gcc...
-// also I should allow users to pass -I flags lol (and -D) like cc crate?
-fn pp_cc(cc: &str, fp: &Path, out: &Path) -> () {
+/// should work with pgcc, icc, clang, gcc...
+pub fn pp_cc(cc: &str, fp: &Path, out: &Path) -> () {
     let os_p = fp.as_os_str();
     let cpp_res = Command::new(cc)
         .args(&[OsStr::new("-E"), OsStr::new("-x"), OsStr::new("c"), os_p])
@@ -18,6 +17,7 @@ fn pp_cc(cc: &str, fp: &Path, out: &Path) -> () {
     let mut out_file = File::create(out).unwrap();
     out_file.write_all(res.as_bytes()).unwrap();
 }
+// also I should allow users to pass -I flags lol (and -D) like cc crate?
 
 fn as_rs(fp: &Path) -> Option<PathBuf> {
     let maybe_ext = fp.extension();
@@ -52,13 +52,6 @@ fn walk_dir<P: AsRef<Path>>(cc: &str, dir: P) -> () {
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    // #[test]
-    // fn pp_cc_test() {
-    // let fp0 = Path::new("test/demo/test.cpprs");
-    // let fp1 = Path::new("test/demo/test.rs");
-    // pp_cc("gcc", fp0, fp1);
-    // }
 
     #[test]
     fn walk_test() {
