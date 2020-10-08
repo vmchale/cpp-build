@@ -1,0 +1,5 @@
+#define TWO 2
+
+fn main() -> () {
+    println!("{}", TWO);
+}
