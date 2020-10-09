@@ -1,4 +1,4 @@
-#define TWO 2
+#include "demo.h"
 
 fn main() -> () {
     println!("{}", TWO);

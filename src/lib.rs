@@ -22,6 +22,10 @@ fn ccompiler(cc: &CCompiler) -> String {
     .to_owned()
 }
 
+fn includes(is: Vec<&OsStr>) -> Vec<&OsStr> {
+    is.iter().flat_map(|x| vec![OsStr::new("-I"), x]).collect()
+}
+
 fn cflags(cc: &CCompiler) -> Vec<&OsStr> {
     match cc {
         CCompiler::GCC => vec!["-E", "-x", "c"]
@@ -38,19 +42,26 @@ fn cflags(cc: &CCompiler) -> Vec<&OsStr> {
 }
 
 /// Preprocess using [cpphs](https://archives.haskell.org/projects.haskell.org/cpphs/).
-pub fn pp_cpphs(fp: &Path, out: &Path) {
+pub fn pp_cpphs(fp: &Path, out: &Path, is: Vec<&OsStr>) {
     let os_p = fp.as_os_str();
     let out_p = out.as_os_str();
+    let mut arg_vec = vec![os_p, out_p];
+    for i in includes(is) {
+        arg_vec.push(i);
+    }
     let _ = Command::new("cpphs")
         .args(&[os_p, out_p])
         .output()
         .expect("call to C preprocessor failed");
 }
 
-pub fn pp_cc(cc: &CCompiler, fp: &Path, out: &Path) {
+pub fn pp_cc(cc: &CCompiler, fp: &Path, out: &Path, is: &Vec<&OsStr>) {
     let os_p = fp.as_os_str();
     let mut args0 = cflags(cc);
     args0.push(os_p);
+    for i in includes(is.to_vec()) {
+        args0.push(i);
+    }
     // FIXME: borrow?
     let cpp_res = Command::new(ccompiler(cc))
         .args(args0) // FIXME: don't pass -x c for pgcc (clang, gcc need it)
@@ -80,17 +91,19 @@ fn as_rs(fp: &Path) -> Option<PathBuf> {
     })
 }
 
-pub fn walk_src_preprocess(cc: CCompiler) {
-    walk_preprocess(cc, "src");
+/// Preprocess all `.cpprs` files in the `src` directory
+pub fn walk_src_preprocess(cc: CCompiler, include_dirs: Vec<&OsStr>) {
+    walk_preprocess(cc, "src", include_dirs);
 }
 
-/// This function walks a given directory
-pub fn walk_preprocess<P: AsRef<Path>>(cc: CCompiler, dir: P) {
+/// Preprocess all `.cpprs` files in a given directory.
+pub fn walk_preprocess<P: AsRef<Path>>(cc: CCompiler, dir: P, include_dirs: Vec<&OsStr>) {
     for entry in WalkDir::new(dir).into_iter().filter_map(|e| e.ok()) {
+        // TODO: take a WalkDir?
         let mdo = as_rs(entry.path());
         match mdo {
             None => (),
-            Some(out_fp) => pp_cc(&cc, entry.path(), &out_fp),
+            Some(out_fp) => pp_cc(&cc, entry.path(), &out_fp, &include_dirs),
         }
     }
 }
@@ -104,6 +117,6 @@ mod tests {
     fn walk_test() {
         let res = fs::remove_file("test/demo/test.rs");
         if res.is_ok() {}
-        walk_preprocess(CCompiler::GCC, "test/demo")
+        walk_preprocess(CCompiler::GCC, "test/demo", vec![OsStr::new("include")])
     }
 }
