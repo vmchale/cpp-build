@@ -56,6 +56,7 @@ pub fn pp_cpphs(fp: &Path, out: &Path, is: Vec<&OsStr>) {
     // let mut out_str: Vec<&str> = Vec::new();
 }
 
+/// Preprocess using one of the known [CCompiler](CCompiler)s
 pub fn pp_cc(cc: &CCompiler, fp: &Path, out: &Path, is: &Vec<&OsStr>) {
     let os_p = fp.as_os_str();
     let mut args0 = cflags(cc);
@@ -70,6 +71,7 @@ pub fn pp_cc(cc: &CCompiler, fp: &Path, out: &Path, is: &Vec<&OsStr>) {
         .output()
         .expect("call to C preprocessor failed");
     let raw = String::from_utf8(cpp_res.stdout).unwrap();
+    println!("{}", &raw);
     let res: String = raw
         .lines()
         .filter(|x| !(x.starts_with("#")))
@@ -78,6 +80,7 @@ pub fn pp_cc(cc: &CCompiler, fp: &Path, out: &Path, is: &Vec<&OsStr>) {
     let mut out_file = File::create(out).unwrap();
     out_file.write_all(res.as_bytes()).unwrap();
 }
+
 // also I should allow users to pass -I flags lol (and -D) like cc crate?
 
 // maybe get a .rs file name from a .cpprs file
@@ -104,12 +107,20 @@ pub fn walk_src_preprocess(cc: CCompiler, include_dirs: Vec<&OsStr>) {
 
 /// Preprocess all `.cpprs` files in a given directory.
 pub fn walk_preprocess<P: AsRef<Path>>(cc: CCompiler, dir: P, include_dirs: Vec<&OsStr>) {
-    for entry in WalkDir::new(dir).into_iter().filter_map(|e| e.ok()) {
-        // TODO: take a WalkDir?
+    let walker = WalkDir::new(dir);
+    walk_preprocess_general(cc, walker, include_dirs)
+}
+
+/// Preprocess all `.cpprs` files encountered by a [WalkDir](WalkDir)
+pub fn walk_preprocess_general(cc: CCompiler, walker: WalkDir, include_dirs: Vec<&OsStr>) {
+    for entry in walker.into_iter().filter_map(|e| e.ok()) {
         let mdo = as_rs(entry.path());
         match mdo {
             None => (),
-            Some(out_fp) => pp_cc(&cc, entry.path(), &out_fp, &include_dirs),
+            Some(out_fp) => {
+                println!("cargo:rerun-if-changed={}", entry.path().display());
+                pp_cc(&cc, entry.path(), &out_fp, &include_dirs);
+            }
         }
     }
 }

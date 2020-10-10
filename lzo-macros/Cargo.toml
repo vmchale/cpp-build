@@ -1,8 +1,8 @@
 [package]
-name = "cppbuild"
+name = "lzo-macros"
 version = "0.1.0"
 authors = ["Vanessa McHale <vamchale@gmail.com>"]
 edition = "2018"
 
-[dependencies]
-walkdir = "2"
+[build-dependencies]
+cppbuild = { version = "0.1", path = "../" }
