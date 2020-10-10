@@ -1,7 +1,3 @@
-#[macro_use]
-extern crate lazy_static;
-
-use regex::Regex;
 use std::ffi::OsStr;
 use std::fs::File;
 use std::io::prelude::*;
@@ -57,13 +53,7 @@ pub fn pp_cpphs(fp: &Path, out: &Path, is: Vec<&OsStr>) {
         .args(&[os_p, out_p])
         .output()
         .expect("call to C preprocessor failed");
-}
-
-fn preprocessor_junk(inp: &str) -> bool {
-    lazy_static! {
-        static ref RE: Regex = Regex::new(r"^# [0-9]+").unwrap();
-    }
-    RE.is_match(inp)
+    // let mut out_str: Vec<&str> = Vec::new();
 }
 
 pub fn pp_cc(cc: &CCompiler, fp: &Path, out: &Path, is: &Vec<&OsStr>) {
@@ -80,7 +70,11 @@ pub fn pp_cc(cc: &CCompiler, fp: &Path, out: &Path, is: &Vec<&OsStr>) {
         .output()
         .expect("call to C preprocessor failed");
     let raw = String::from_utf8(cpp_res.stdout).unwrap();
-    let res: String = raw.lines().filter(|x| !(preprocessor_junk(x))).collect();
+    let res: String = raw
+        .lines()
+        .filter(|x| !(x.starts_with("#")))
+        .flat_map(|x| vec![x, "\n"])
+        .collect();
     let mut out_file = File::create(out).unwrap();
     out_file.write_all(res.as_bytes()).unwrap();
 }

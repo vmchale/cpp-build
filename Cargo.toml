@@ -6,5 +6,3 @@ edition = "2018"
 
 [dependencies]
 walkdir = "2"
-regex = "1"
-lazy_static = "1"
