@@ -8,7 +8,7 @@
 You probably want the following in your `build.rs`:
 
 ```
-use cppbuild::{walk_src_preprocess, CCompiler};
+use cpprs::{walk_src_preprocess, CCompiler};
 
 fn main() {
     walk_src_preprocess(CCompiler::GCC, vec![])

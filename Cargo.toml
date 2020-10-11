@@ -1,5 +1,5 @@
 [package]
-name         = "cppbuild"
+name         = "cpprs"
 version      = "0.1.0"
 authors      = ["Vanessa McHale <vamchale@gmail.com>"]
 edition      = "2018"
@@ -16,7 +16,7 @@ lazy_static = "1"
 criterion = "0.3"
 
 [[bench]]
-name = "cppbuild_bench"
+name = "cpprs_bench"
 harness = false
 
 [profile.release]

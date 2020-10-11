@@ -1,7 +1,7 @@
 #[macro_use]
 extern crate criterion;
 
-use cppbuild::*;
+use cpprs::*;
 use criterion::Criterion;
 use std::ffi::OsStr;
 use std::path::Path;

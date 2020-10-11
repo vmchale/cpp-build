@@ -5,4 +5,4 @@ authors = ["Vanessa McHale <vamchale@gmail.com>"]
 edition = "2018"
 
 [build-dependencies]
-cppbuild = { version = "0.1", path = "../" }
+cpprs = { version = "0.1", path = "../" }

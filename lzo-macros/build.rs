@@ -1,4 +1,4 @@
-use cppbuild::{walk_src_preprocess, CCompiler};
+use cpprs::{walk_src_preprocess, CCompiler};
 use std::ffi::OsStr;
 
 fn main() {
