@@ -113,8 +113,6 @@ pub fn pp_cc(cc: &CCompiler, fp: &Path, out: &Path, is: &Vec<&OsStr>) {
     out_file.write_all(res.as_bytes()).unwrap();
 }
 
-// also I should allow users to pass -I flags lol (and -D) like cc crate?
-
 // maybe get a .rs file name from a .cpprs file
 fn as_rs(fp: &Path) -> Option<PathBuf> {
     let maybe_ext = fp.extension();
