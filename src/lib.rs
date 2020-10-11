@@ -145,7 +145,7 @@ fn process_lines(fp: &Path, lines: Lines) -> String {
 }
 
 /// Preprocess using one of the known [CCompiler](CCompiler)s
-pub fn pp_cc(cc: &CCompiler, fp: &Path, out: &Path, is: &Vec<&OsStr>) {
+pub fn pp_cc(cc: &CCompiler, fp: &Path, out: &Path, is: &[&OsStr]) {
     let os_p = fp.as_os_str();
     let mut args0 = cflags(cc);
     args0.push(os_p);
