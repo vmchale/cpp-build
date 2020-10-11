@@ -1,8 +1,11 @@
 [package]
-name = "cppbuild"
-version = "0.1.0"
-authors = ["Vanessa McHale <vamchale@gmail.com>"]
-edition = "2018"
+name         = "cppbuild"
+version      = "0.1.0"
+authors      = ["Vanessa McHale <vamchale@gmail.com>"]
+edition      = "2018"
+description  = "Use the C pre-processor on Rust source files"
+license-file = "LICENSE"
+repository   = "https://github.com/vmchale/cpp-build.git"
 
 [dependencies]
 walkdir = "2"
