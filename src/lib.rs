@@ -2,6 +2,22 @@
 
 # Example
 
+## Build
+
+
+You probably want the following in your `build.rs`:
+
+```
+fn main() {
+    walk_dir(CCompiler::GCC, "src")
+}
+```
+
+This will pre-process any `.cpprs` source files in `src/` using
+[GCC](https://gcc.gnu.org/).
+
+## Code
+
 Suppose you have the following in `src/lib.cpprs`:
 
 ```c
@@ -48,16 +64,6 @@ pub enum LzoError {
 
 i.e. the macros will be filled in.
 
-You probably want the following in your `build.rs`:
-
-```
-fn main() {
-    walk_dir(CCompiler::GCC, "src")
-}
-```
-
-This will pre-process any `.cpprs` source files in `src/` using
-[GCC](https://gcc.gnu.org/).
 */
 
 #[macro_use]
