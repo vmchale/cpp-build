@@ -1,5 +1,0 @@
-#include "demo.h"
-
-fn main() -> () {
-    println!("{}", TWO);
-}

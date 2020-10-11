@@ -1,5 +1,5 @@
-test/demo/test.rs
 /target
 rusty-tags.vi
 Cargo.lock
 lzo-macros/target
+lzo-macros/src/lib.rs

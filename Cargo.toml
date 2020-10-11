@@ -6,3 +6,15 @@ edition = "2018"
 
 [dependencies]
 walkdir = "2"
+regex = "1"
+lazy_static = "1"
+
+[dev-dependencies]
+criterion = "0.3"
+
+[[bench]]
+name = "cppbuild_bench"
+harness = false
+
+[profile.release]
+lto = true
