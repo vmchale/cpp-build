@@ -126,13 +126,15 @@ fn begin_rust(fp: &Path, line: &str) -> bool {
 }
 
 fn process_lines(fp: &Path, lines: Lines) -> String {
-    let mut res_vec: Vec<&str> = Vec::new();
+    let mut res_vec: Vec<&str> = Vec::with_capacity(100);
     let mut post_src_file = false;
     for l in lines {
-        if from_file(l) {
+        let ff = from_file(l);
+        if ff {
             post_src_file = false
         }
-        let line_line = begin_rust(fp, l);
+        // if it's not a from_file line it certainly can't be a relevant line
+        let line_line = if !ff { false } else { begin_rust(fp, l) };
         if line_line {
             post_src_file = true
         }
@@ -152,7 +154,6 @@ pub fn pp_cc(cc: &CCompiler, fp: &Path, out: &Path, is: &[&OsStr]) {
     for i in includes(is.to_vec()) {
         args0.push(i);
     }
-    // FIXME: borrow?
     let cpp_res = Command::new(ccompiler(cc))
         .args(args0)
         .stdout(Stdio::piped())
