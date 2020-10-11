@@ -1,6 +1,6 @@
 #include <minilzo.h>
 
-enum LzoError {
+pub enum LzoError {
     LzoOk = LZO_E_OK,
     LzoError = LZO_E_ERROR,
     LzoOutOfMemory = LZO_E_OUT_OF_MEMORY,

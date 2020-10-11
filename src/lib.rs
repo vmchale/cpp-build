@@ -1,3 +1,54 @@
+/*!
+
+# Example
+
+With the following input:
+
+```c
+#include <minilzo.h>
+
+pub enum LzoError {
+    LzoOk = LZO_E_OK,
+    LzoError = LZO_E_ERROR,
+    LzoOutOfMemory = LZO_E_OUT_OF_MEMORY,
+    LzoNotCompressible = LZO_E_NOT_COMPRESSIBLE,
+    LzoInputOverrun = LZO_E_INPUT_OVERRUN,
+    LzoOutputOverrun = LZO_E_OUTPUT_OVERRUN,
+    LzoLookbehindOverrun = LZO_E_LOOKBEHIND_OVERRUN,
+    LzoEofNotFound = LZO_E_EOF_NOT_FOUND,
+    LzoInputNotConsumed = LZO_E_INPUT_NOT_CONSUMED,
+    LzoNotYetImplemented = LZO_E_NOT_YET_IMPLEMENTED,
+    LzoInvalidArgument = LZO_E_INVALID_ARGUMENT,
+    LzoInvalidAlignment = LZO_E_INVALID_ALIGNMENT,
+    LzoOutputNotConsumed = LZO_E_OUTPUT_NOT_CONSUMED,
+    LzoInternalError = LZO_E_INTERNAL_ERROR,
+}
+```
+
+You get the following output:
+
+```
+pub enum LzoError {
+    LzoOk = 0,
+    LzoError = (-1),
+    LzoOutOfMemory = (-2),
+    LzoNotCompressible = (-3),
+    LzoInputOverrun = (-4),
+    LzoOutputOverrun = (-5),
+    LzoLookbehindOverrun = (-6),
+    LzoEofNotFound = (-7),
+    LzoInputNotConsumed = (-8),
+    LzoNotYetImplemented = (-9),
+    LzoInvalidArgument = (-10),
+    LzoInvalidAlignment = (-11),
+    LzoOutputNotConsumed = (-12),
+    LzoInternalError = (-99),
+}
+```
+
+i.e. the macros are filled in.
+*/
+
 #[macro_use]
 extern crate lazy_static;
 
