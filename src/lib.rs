@@ -133,7 +133,6 @@ pub fn pp_cpphs(fp: &Path, out: &Path, is: Vec<&OsStr>) {
     let os_p = fp.as_os_str();
     let out_p = out.as_os_str();
     let mut arg_vec = vec![os_p, out_p];
-    let system_includes = get_include_dirs();
     for i in includes(is) {
         arg_vec.push(i);
     }
