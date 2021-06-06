@@ -6,12 +6,12 @@ Put this in your `build.rs` to use the C pre-processor with Rust.
 
 ```rust
 fn main() {
-    walk_dir(CCompiler::GCC, "src")
+    walk_dir("src")
 }
 ```
 
 This will pre-process any `.cpprs` source files in `src/` using
-[GCC](https://gcc.gnu.org/).
+the system C compiler.
 
 See the [lzo-macros](https://github.com/vmchale/cpp-build/tree/main/lzo-macros)
 example.

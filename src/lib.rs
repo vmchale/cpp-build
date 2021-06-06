@@ -4,14 +4,13 @@
 
 ## Build
 
-
 You probably want the following in your `build.rs`:
 
 ```
-use cpprs::{walk_src_preprocess, CCompiler};
+use cpprs::{walk_src_preprocess};
 
 fn main() {
-    walk_src_preprocess(CCompiler::GCC, vec![])
+    walk_src_preprocess(vec![])
 }
 ```
 
@@ -80,11 +79,26 @@ use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
 use std::str::Lines;
 use walkdir::WalkDir;
+use which;
 
 pub enum CCompiler {
     GCC,
     ICC,
     Clang,
+}
+
+/// Detect C compiler, default to GCC over Clang.
+fn detect_compiler() -> CCompiler {
+    match which::which("gcc") {
+        Ok(_) => CCompiler::GCC,
+        Err(_) => match which::which("clang") {
+            Ok(_) => CCompiler::Clang,
+            Err(_) => match which::which("icc") {
+                Ok(_) => CCompiler::ICC,
+                Err(_) => panic!("No C compiler detected! Expect one of GCC, ICC, Clang"),
+            },
+        },
+    }
 }
 
 fn ccompiler(cc: &CCompiler) -> String {
@@ -119,6 +133,7 @@ pub fn pp_cpphs(fp: &Path, out: &Path, is: Vec<&OsStr>) {
     let os_p = fp.as_os_str();
     let out_p = out.as_os_str();
     let mut arg_vec = vec![os_p, out_p];
+    let system_includes = get_include_dirs();
     for i in includes(is) {
         arg_vec.push(i);
     }
@@ -166,6 +181,12 @@ fn process_lines(fp: &Path, lines: Lines) -> String {
     res_vec.into_iter().collect()
 }
 
+/// Preprocess, defaulting to [GCC](CCompiler::GCC) over [Clang](CCompiler::Clang).
+pub fn pp(fp: &Path, out: &Path, is: &[&OsStr]) {
+    let pp_guess = detect_compiler();
+    pp_cc(&pp_guess, fp, out, is)
+}
+
 /// Preprocess using one of the known [CCompiler](CCompiler)s
 pub fn pp_cc(cc: &CCompiler, fp: &Path, out: &Path, is: &[&OsStr]) {
     let os_p = fp.as_os_str();
@@ -203,7 +224,7 @@ fn as_rs(fp: &Path) -> Option<PathBuf> {
 }
 
 /// Get includes from the `C_INCLUDE_PATH` environment variable.
-pub fn get_include_dirs() -> Vec<OsString> {
+fn get_include_dirs() -> Vec<OsString> {
     match env::var_os("C_INCLUDE_PATH") {
         Some(paths) => env::split_paths(&paths)
             .map(|x| x.into_os_string())
@@ -215,14 +236,15 @@ pub fn get_include_dirs() -> Vec<OsString> {
 }
 
 /// Preprocess all `.cpprs` files in the `src` directory
-pub fn walk_src_preprocess(cc: CCompiler, include_dirs: Vec<&OsStr>) {
-    walk_preprocess(cc, "src", include_dirs);
+pub fn walk_src_preprocess(include_dirs: Vec<&OsStr>) {
+    walk_preprocess("src", include_dirs);
 }
 
 /// Preprocess all `.cpprs` files in a given directory.
-pub fn walk_preprocess<P: AsRef<Path>>(cc: CCompiler, dir: P, include_dirs: Vec<&OsStr>) {
+pub fn walk_preprocess<P: AsRef<Path>>(dir: P, include_dirs: Vec<&OsStr>) {
     let walker = WalkDir::new(dir);
-    walk_preprocess_general(cc, walker, include_dirs)
+    let cc_guess = detect_compiler();
+    walk_preprocess_general(cc_guess, walker, include_dirs)
 }
 
 /// Preprocess all `.cpprs` files encountered by a [WalkDir](WalkDir)
@@ -248,10 +270,6 @@ mod tests {
     fn walk_test() {
         let res = fs::remove_file("lzo-macros/src/lib.rs");
         if res.is_ok() {}
-        walk_preprocess(
-            CCompiler::GCC,
-            "lzo-macros/src",
-            vec![OsStr::new("lzo-macros/cbits")],
-        )
+        walk_preprocess("lzo-macros/src", vec![OsStr::new("lzo-macros/cbits")])
     }
 }
