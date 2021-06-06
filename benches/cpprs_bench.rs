@@ -7,7 +7,7 @@ use std::ffi::OsStr;
 use std::path::Path;
 
 fn pp_cc_benchmark(c: &mut Criterion) {
-    c.bench_function("bytecount (iterator)", |b| {
+    c.bench_function("lzo macros", |b| {
         b.iter(|| {
             pp_cc(
                 &CCompiler::GCC,
