@@ -72,7 +72,8 @@ i.e. the macros will be filled in.
 extern crate lazy_static;
 
 use regex::Regex;
-use std::ffi::OsStr;
+use std::env;
+use std::ffi::{OsStr, OsString};
 use std::fs::File;
 use std::io::prelude::*;
 use std::path::{Path, PathBuf};
@@ -199,6 +200,18 @@ fn as_rs(fp: &Path) -> Option<PathBuf> {
             _ => None,
         }
     })
+}
+
+/// Get includes from the `C_INCLUDE_PATH` environment variable.
+pub fn get_include_dirs() -> Vec<OsString> {
+    match env::var_os("C_INCLUDE_PATH") {
+        Some(paths) => env::split_paths(&paths)
+            .map(|x| x.into_os_string())
+            .collect::<Vec<OsString>>(),
+        None => {
+            vec![]
+        }
+    }
 }
 
 /// Preprocess all `.cpprs` files in the `src` directory
