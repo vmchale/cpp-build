@@ -85,17 +85,21 @@ pub enum CCompiler {
     GCC,
     ICC,
     Clang,
+    MSVC,
 }
 
 /// Detect C compiler, default to GCC over Clang.
 fn detect_compiler() -> CCompiler {
-    match which::which("gcc") {
-        Ok(_) => CCompiler::GCC,
-        Err(_) => match which::which("clang") {
-            Ok(_) => CCompiler::Clang,
-            Err(_) => match which::which("icc") {
-                Ok(_) => CCompiler::ICC,
-                Err(_) => panic!("No C compiler detected! Expect one of GCC, ICC, Clang"),
+    match which::which("msvc") {
+        Ok(_) => CCompiler::MSVC,
+        Err(_) => match which::which("gcc") {
+            Ok(_) => CCompiler::GCC,
+            Err(_) => match which::which("clang") {
+                Ok(_) => CCompiler::Clang,
+                Err(_) => match which::which("icc") {
+                    Ok(_) => CCompiler::ICC,
+                    Err(_) => panic!("No C compiler detected! Expect one of GCC, ICC, Clang"),
+                },
             },
         },
     }
@@ -106,6 +110,7 @@ fn ccompiler(cc: &CCompiler) -> String {
         CCompiler::GCC => "gcc",
         CCompiler::ICC => "icc",
         CCompiler::Clang => "clang",
+        CCompiler::MSVC => "cl",
     }
     .to_owned()
 }
@@ -125,6 +130,7 @@ fn cflags(cc: &CCompiler) -> Vec<&OsStr> {
             .into_iter()
             .map(|x| OsStr::new(x))
             .collect(),
+        CCompiler::MSVC => vec!["/P"].into_iter().map(|x| OsStr::new(x)).collect(),
     }
 }
 
@@ -199,6 +205,7 @@ pub fn pp_cc(cc: &CCompiler, fp: &Path, out: &Path, is: &[&OsStr]) {
         .stdout(Stdio::piped())
         .output()
         .expect("call to C preprocessor failed");
+    // need something separate for msvc
     let raw = String::from_utf8(cpp_res.stdout).unwrap();
     let res: String = process_lines(fp, raw.lines());
     let mut out_file = File::create(out).unwrap();
