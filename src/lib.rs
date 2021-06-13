@@ -186,6 +186,17 @@ pub fn pp(fp: &Path, out: &Path, is: &[&OsStr]) {
     pp_cc(&pp_guess, fp, out, is)
 }
 
+pub fn pp_msvc(fp: &Path, out: &Path, is: &[&OsStr]) {
+    let os_p = fp.as_os_str();
+    let cc = CCompiler::MSVC;
+    let mut args0 = cflags(cc);
+    args0.push(os_p);
+    for i in includes(is.to_vec()) {
+        args0.push(i);
+    }
+    Command::new(ccompiler(cc)).args(args0);
+}
+
 /// Preprocess using one of the known [CCompiler](CCompiler)s
 pub fn pp_cc(cc: &CCompiler, fp: &Path, out: &Path, is: &[&OsStr]) {
     let os_p = fp.as_os_str();
