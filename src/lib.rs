@@ -193,34 +193,47 @@ pub fn pp(fp: &Path, out: &Path, is: &[&OsStr]) {
 }
 
 pub fn pp_msvc(fp: &Path, out: &Path, is: &[&OsStr]) {
+    // msvc stores output in file foo.i for foo.c; we can't use stdout.
+    let mut out_i = PathBuf::from(fp);
+    out_i.set_extension("i");
     let os_p = fp.as_os_str();
-    let cc = CCompiler::MSVC;
+    let cc = &CCompiler::MSVC;
     let mut args0 = cflags(cc);
     args0.push(os_p);
     for i in includes(is.to_vec()) {
         args0.push(i);
     }
     Command::new(ccompiler(cc)).args(args0);
+    let res = std::fs::rename(out_i, out);
+    match res {
+        Ok(_) => (),
+        Err(_) => panic!("Unexpected error in file move."),
+    }
 }
 
 /// Preprocess using one of the known [CCompiler](CCompiler)s
 pub fn pp_cc(cc: &CCompiler, fp: &Path, out: &Path, is: &[&OsStr]) {
-    let os_p = fp.as_os_str();
-    let mut args0 = cflags(cc);
-    args0.push(os_p);
-    for i in includes(is.to_vec()) {
-        args0.push(i);
+    match cc {
+        CCompiler::MSVC => pp_msvc(fp, out, is),
+        _ => {
+            let os_p = fp.as_os_str();
+            let mut args0 = cflags(cc);
+            args0.push(os_p);
+            for i in includes(is.to_vec()) {
+                args0.push(i);
+            }
+            let cpp_res = Command::new(ccompiler(cc))
+                .args(args0)
+                .stdout(Stdio::piped())
+                .output()
+                .expect("call to C preprocessor failed");
+            // need something separate for msvc
+            let raw = String::from_utf8(cpp_res.stdout).unwrap();
+            let res: String = process_lines(fp, raw.lines());
+            let mut out_file = File::create(out).unwrap();
+            out_file.write_all(res.as_bytes()).unwrap();
+        }
     }
-    let cpp_res = Command::new(ccompiler(cc))
-        .args(args0)
-        .stdout(Stdio::piped())
-        .output()
-        .expect("call to C preprocessor failed");
-    // need something separate for msvc
-    let raw = String::from_utf8(cpp_res.stdout).unwrap();
-    let res: String = process_lines(fp, raw.lines());
-    let mut out_file = File::create(out).unwrap();
-    out_file.write_all(res.as_bytes()).unwrap();
 }
 
 // maybe get a .rs file name from a .cpprs file
