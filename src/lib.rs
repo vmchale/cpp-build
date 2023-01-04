@@ -79,7 +79,6 @@ use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
 use std::str::Lines;
 use walkdir::WalkDir;
-use which;
 
 pub enum CCompiler {
     GCC,
@@ -121,16 +120,10 @@ fn includes(is: Vec<&OsStr>) -> Vec<&OsStr> {
 
 fn cflags(cc: &CCompiler) -> Vec<&OsStr> {
     match cc {
-        CCompiler::GCC => vec!["-E", "-x", "c"]
-            .into_iter()
-            .map(|x| OsStr::new(x))
-            .collect(),
-        CCompiler::ICC => vec!["-E"].into_iter().map(|x| OsStr::new(x)).collect(),
-        CCompiler::Clang => vec!["-E", "-x", "c"]
-            .into_iter()
-            .map(|x| OsStr::new(x))
-            .collect(),
-        CCompiler::MSVC => vec!["/P"].into_iter().map(|x| OsStr::new(x)).collect(),
+        CCompiler::GCC => vec!["-E", "-x", "c"].into_iter().map(OsStr::new).collect(),
+        CCompiler::ICC => vec!["-E"].into_iter().map(OsStr::new).collect(),
+        CCompiler::Clang => vec!["-E", "-x", "c"].into_iter().map(OsStr::new).collect(),
+        CCompiler::MSVC => vec!["/P"].into_iter().map(OsStr::new).collect(),
     }
 }
 
@@ -143,7 +136,7 @@ pub fn pp_cpphs(fp: &Path, out: &Path, is: Vec<&OsStr>) {
         arg_vec.push(i);
     }
     let _ = Command::new("cpphs")
-        .args(&[os_p, out_p])
+        .args([os_p, out_p])
         .output()
         .expect("call to C preprocessor failed");
 }
