@@ -128,20 +128,6 @@ fn cflags(cc: &CCompiler) -> Vec<&OsStr> {
     }
 }
 
-/// Preprocess using [cpphs](https://archives.haskell.org/projects.haskell.org/cpphs/).
-pub fn pp_cpphs(fp: &Path, out: &Path, is: Vec<&OsStr>) {
-    let os_p = fp.as_os_str();
-    let out_p = out.as_os_str();
-    let mut arg_vec = vec![os_p, out_p];
-    for i in includes(is) {
-        arg_vec.push(i);
-    }
-    let _ = Command::new("cpphs")
-        .args(&[os_p, out_p])
-        .output()
-        .expect("call to C preprocessor failed");
-}
-
 fn from_file(line: &str) -> bool {
     lazy_static! {
         static ref RE: Regex = Regex::new("^# \\d+ \".*\"").unwrap();
