@@ -191,7 +191,7 @@ pub fn pp_msvc(fp: &Path, out: &Path, is: &[&OsStr]) {
     }
 }
 
-/// Preprocess using one of the known [CCompiler](CCompiler)s
+/// Preprocess using one of the known [CCompiler]s
 pub fn pp_cc(cc: &CCompiler, fp: &Path, out: &Path, is: &[&OsStr]) {
     match cc {
         CCompiler::MSVC => pp_msvc(fp, out, is),
@@ -255,7 +255,7 @@ pub fn walk_preprocess<P: AsRef<Path>>(dir: P, include_dirs: Vec<&OsStr>) {
     walk_preprocess_general(cc_guess, walker, include_dirs)
 }
 
-/// Preprocess all `.cpprs` files encountered by a [WalkDir](WalkDir)
+/// Preprocess all `.cpprs` files encountered by a [WalkDir]
 pub fn walk_preprocess_general(cc: CCompiler, walker: WalkDir, include_dirs: Vec<&OsStr>) {
     for entry in walker.into_iter().filter_map(|e| e.ok()) {
         let mdo = as_rs(entry.path());
