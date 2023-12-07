@@ -121,15 +121,9 @@ fn includes(is: Vec<&OsStr>) -> Vec<&OsStr> {
 
 fn cflags(cc: &CCompiler) -> Vec<&OsStr> {
     match cc {
-        CCompiler::GCC => vec!["-E", "-x", "c"]
-            .into_iter()
-            .map(|x| OsStr::new(x))
-            .collect(),
+        CCompiler::GCC => vec!["-E", "-x", "c"].into_iter().map(|x| OsStr::new(x)).collect(),
         CCompiler::ICC => vec!["-E"].into_iter().map(|x| OsStr::new(x)).collect(),
-        CCompiler::Clang => vec!["-E", "-x", "c"]
-            .into_iter()
-            .map(|x| OsStr::new(x))
-            .collect(),
+        CCompiler::Clang => vec!["-E", "-x", "c"].into_iter().map(|x| OsStr::new(x)).collect(),
         CCompiler::MSVC => vec!["/P"].into_iter().map(|x| OsStr::new(x)).collect(),
     }
 }
@@ -256,9 +250,7 @@ fn as_rs(fp: &Path) -> Option<PathBuf> {
 /// Get includes from the `C_INCLUDE_PATH` environment variable.
 fn get_include_dirs() -> Vec<OsString> {
     match env::var_os("C_INCLUDE_PATH") {
-        Some(paths) => env::split_paths(&paths)
-            .map(|x| x.into_os_string())
-            .collect::<Vec<OsString>>(),
+        Some(paths) => env::split_paths(&paths).map(|x| x.into_os_string()).collect::<Vec<OsString>>(),
         None => {
             vec![]
         }
