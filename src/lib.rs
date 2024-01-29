@@ -115,15 +115,15 @@ fn ccompiler(cc: &CCompiler) -> String {
 }
 
 fn includes<'a>(is: impl Iterator<Item = &'a OsStr>) -> Vec<&'a OsStr> {
-    is.flat_map(|x| vec![OsStr::new("-I"), x.as_ref()]).collect()
+    is.flat_map(|x| vec![OsStr::new("-I"), x]).collect()
 }
 
 fn cflags(cc: &CCompiler) -> Vec<&OsStr> {
     match cc {
-        CCompiler::GCC => vec!["-E", "-x", "c"].into_iter().map(|x| OsStr::new(x)).collect(),
-        CCompiler::ICC => vec!["-E"].into_iter().map(|x| OsStr::new(x)).collect(),
-        CCompiler::Clang => vec!["-E", "-x", "c"].into_iter().map(|x| OsStr::new(x)).collect(),
-        CCompiler::MSVC => vec!["/P"].into_iter().map(|x| OsStr::new(x)).collect(),
+        CCompiler::GCC => vec!["-E", "-x", "c"].into_iter().map(OsStr::new).collect(),
+        CCompiler::ICC => vec!["-E"].into_iter().map(OsStr::new).collect(),
+        CCompiler::Clang => vec!["-E", "-x", "c"].into_iter().map(OsStr::new).collect(),
+        CCompiler::MSVC => vec!["/P"].into_iter().map(OsStr::new).collect(),
     }
 }
 
@@ -134,8 +134,6 @@ fn from_file(line: &str) -> bool {
     RE.is_match(line)
 }
 
-// stateful-ish, only take lines after "src/lib.cpprs" as appropriate...
-// only works w/ icc, gcc, clang
 fn begin_rust(fp: &Path, line: &str) -> bool {
     let regex_str = format!("^# \\d+ \"{}\"", fp.display());
     let re = Regex::new(&regex_str).unwrap();
