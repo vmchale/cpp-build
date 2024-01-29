@@ -1,5 +1,6 @@
 #include <minilzo.h>
 
+#[derive(Eq)]
 pub enum LzoError {
     LzoOk = LZO_E_OK,
     LzoError = LZO_E_ERROR,
