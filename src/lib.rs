@@ -7,7 +7,7 @@
 You probably want the following in your `build.rs`:
 
 ```
-use cpprs::{walk_src_preprocess};
+use cpprs::walk_src_preprocess;
 
 fn main() {
     walk_src_preprocess(vec![])
@@ -114,31 +114,17 @@ fn ccompiler(cc: &CCompiler) -> String {
     .to_owned()
 }
 
-fn includes(is: Vec<&OsStr>) -> Vec<&OsStr> {
-    is.iter().flat_map(|x| vec![OsStr::new("-I"), x]).collect()
+fn includes<'a>(is: impl Iterator<Item = &'a OsStr>) -> Vec<&'a OsStr> {
+    is.flat_map(|x| vec![OsStr::new("-I"), x.as_ref()]).collect()
 }
 
 fn cflags(cc: &CCompiler) -> Vec<&OsStr> {
     match cc {
-        CCompiler::GCC => vec!["-E", "-x", "c"].into_iter().map(OsStr::new).collect(),
-        CCompiler::ICC => vec!["-E"].into_iter().map(OsStr::new).collect(),
-        CCompiler::Clang => vec!["-E", "-x", "c"].into_iter().map(OsStr::new).collect(),
-        CCompiler::MSVC => vec!["/P"].into_iter().map(OsStr::new).collect(),
+        CCompiler::GCC => vec!["-E", "-x", "c"].into_iter().map(|x| OsStr::new(x)).collect(),
+        CCompiler::ICC => vec!["-E"].into_iter().map(|x| OsStr::new(x)).collect(),
+        CCompiler::Clang => vec!["-E", "-x", "c"].into_iter().map(|x| OsStr::new(x)).collect(),
+        CCompiler::MSVC => vec!["/P"].into_iter().map(|x| OsStr::new(x)).collect(),
     }
-}
-
-/// Preprocess using [cpphs](https://archives.haskell.org/projects.haskell.org/cpphs/).
-pub fn pp_cpphs(fp: &Path, out: &Path, is: Vec<&OsStr>) {
-    let os_p = fp.as_os_str();
-    let out_p = out.as_os_str();
-    let mut arg_vec = vec![os_p, out_p];
-    for i in includes(is) {
-        arg_vec.push(i);
-    }
-    let _ = Command::new("cpphs")
-        .args([os_p, out_p])
-        .output()
-        .expect("call to C preprocessor failed");
 }
 
 fn from_file(line: &str) -> bool {
@@ -150,8 +136,6 @@ fn from_file(line: &str) -> bool {
 
 // stateful-ish, only take lines after "src/lib.cpprs" as appropriate...
 // only works w/ icc, gcc, clang
-//
-// could be extended to cpphs
 fn begin_rust(fp: &Path, line: &str) -> bool {
     let regex_str = format!("^# \\d+ \"{}\"", fp.display());
     let re = Regex::new(&regex_str).unwrap();
@@ -185,7 +169,7 @@ pub fn pp(fp: &Path, out: &Path, is: &[&OsStr]) {
     pp_cc(&pp_guess, fp, out, is)
 }
 
-pub fn pp_msvc(fp: &Path, out: &Path, is: &[&OsStr]) {
+pub fn pp_msvc<S: AsRef<OsStr> + Clone>(fp: &Path, out: &Path, is: &[S]) {
     // msvc stores output in file foo.i for foo.c; we can't use stdout.
     let mut out_i = PathBuf::from(fp);
     out_i.set_extension("i");
@@ -193,7 +177,7 @@ pub fn pp_msvc(fp: &Path, out: &Path, is: &[&OsStr]) {
     let cc = &CCompiler::MSVC;
     let mut args0 = cflags(cc);
     args0.push(os_p);
-    for i in includes(is.to_vec()) {
+    for i in includes(is.iter().map(|s| s.as_ref())) {
         args0.push(i);
     }
     Command::new(ccompiler(cc)).args(args0);
@@ -204,15 +188,15 @@ pub fn pp_msvc(fp: &Path, out: &Path, is: &[&OsStr]) {
     }
 }
 
-/// Preprocess using one of the known [CCompiler](CCompiler)s
-pub fn pp_cc(cc: &CCompiler, fp: &Path, out: &Path, is: &[&OsStr]) {
+/// Preprocess using one of the known [CCompiler]s
+pub fn pp_cc<S: AsRef<OsStr> + Clone>(cc: &CCompiler, fp: &Path, out: &Path, is: &[S]) {
     match cc {
         CCompiler::MSVC => pp_msvc(fp, out, is),
         _ => {
             let os_p = fp.as_os_str();
             let mut args0 = cflags(cc);
             args0.push(os_p);
-            for i in includes(is.to_vec()) {
+            for i in includes(is.iter().map(|s| s.as_ref())) {
                 args0.push(i);
             }
             let cpp_res = Command::new(ccompiler(cc))
@@ -249,9 +233,7 @@ fn as_rs(fp: &Path) -> Option<PathBuf> {
 /// Get includes from the `C_INCLUDE_PATH` environment variable.
 fn get_include_dirs() -> Vec<OsString> {
     match env::var_os("C_INCLUDE_PATH") {
-        Some(paths) => env::split_paths(&paths)
-            .map(|x| x.into_os_string())
-            .collect::<Vec<OsString>>(),
+        Some(paths) => env::split_paths(&paths).map(|x| x.into_os_string()).collect::<Vec<OsString>>(),
         None => {
             vec![]
         }
@@ -270,15 +252,17 @@ pub fn walk_preprocess<P: AsRef<Path>>(dir: P, include_dirs: Vec<&OsStr>) {
     walk_preprocess_general(cc_guess, walker, include_dirs)
 }
 
-/// Preprocess all `.cpprs` files encountered by a [WalkDir](WalkDir)
+/// Preprocess all `.cpprs` files encountered by a [WalkDir]
 pub fn walk_preprocess_general(cc: CCompiler, walker: WalkDir, include_dirs: Vec<&OsStr>) {
+    let incls = get_include_dirs();
+    let is: Vec<OsString> = incls.into_iter().chain(include_dirs.into_iter().map(|s| s.to_owned())).collect();
     for entry in walker.into_iter().filter_map(|e| e.ok()) {
         let mdo = as_rs(entry.path());
         match mdo {
             None => (),
             Some(out_fp) => {
                 println!("cargo:rerun-if-changed={}", entry.path().display());
-                pp_cc(&cc, entry.path(), &out_fp, &include_dirs);
+                pp_cc(&cc, entry.path(), &out_fp, &is);
             }
         }
     }
